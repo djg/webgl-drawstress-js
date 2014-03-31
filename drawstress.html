@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+  <meta charset='utf-8'>
+  <canvas id='c' width='600' height='600' style='border: 1px solid black'></canvas>
+  <div id='d'></div>
+  <script src='webgl-utils.js'></script>
+  <script src='color-cube.js'></script>
+  <script src='vector-math.js'></script>
+  <script>
+   'use strict';
+   var d = document.getElementById('d');
+   var c = document.getElementById('c');
+   var gl = c.getContext('webgl');
+   gl.enable(gl.DEPTH_TEST);
+   gl.clearColor(0,0,0,1);
+
+   var cube = new ColorCube();
+   var z = 0;
+   var rot = new Matrix4x3();
+   var camera = new Matrix4x3();
+
+   var timeOffset = Date.now();
+   var last = Date.now();
+
+   var query = location.search;
+   var dim = (query && query.match(/dim=([0-9]*)/)[1]) || 16;
+
+   function draw() {
+     requestAnimationFrame(draw, c);
+
+     var now = Date.now();
+     var delta = now - last;
+     d.textContent = 'Draw: ' + dim*dim*dim + ', Delta: ' + delta;
+     last = now;
+
+     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+// Uncomment the following for a bit of camera animation.
+//     camera.d[14] = 8 + Math.sin(z);
+     camera.d[14] = dim;
+     viewMatrix().makeInverseRigidBody(camera);
+
+     cube.bind();
+     cube.setUniforms(0x6);
+
+     var time = (now - timeOffset) / 1000.0;
+     var step = 0.6;
+     var pos = [ -step*dim / 2.0, -step*dim / 2.0, -15 ];
+     for (var zz = 0; zz < dim; ++zz) {
+       for (var yy = 0; yy < dim; ++yy) {
+         for (var xx = 0; xx < dim; ++xx) {
+           modelMatrix().makeRotateXYZ(time + xx*0.21, time + yy*0.37, time + yy*0.13);
+           modelMatrix().d[12] = pos[0] + (xx + 0.5)*step;
+           modelMatrix().d[13] = pos[1] + (yy + 0.5)*step;
+           modelMatrix().d[14] = pos[2] + zz*step;
+           cube.draw(0x1);
+         }
+       }
+     }
+     z += 0.01;
+   }
+
+   draw();
+  </script>
+</html>
