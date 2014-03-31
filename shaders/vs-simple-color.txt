@@ -1,0 +1,13 @@
+attribute vec3 a_pos;
+attribute vec4 a_col0;
+
+uniform mat4 u_model;
+uniform mat4 u_view;
+uniform mat4 u_proj;
+
+varying vec4 v_col0;
+
+void main() {
+     gl_Position = u_proj * u_view * u_model * vec4(a_pos, 1);
+     v_col0 = a_col0;
+}
